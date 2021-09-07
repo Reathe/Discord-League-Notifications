@@ -1,19 +1,19 @@
 import os
+
+os.system("pip install -r requirements.txt")
+DISCORD_API_KEY = os.environ['DISCORD_API_KEY']
+
 import asyncio
 import sys
 import traceback
+import replit
+
 from typing import Dict, List
-os.system("pip install -r requirements.txt")
 from discord.ext import commands
 from replit import db
-import replit
 from league_api import player_matchlist, get_game, is_win, request_puuid_byname
 from messages import get_message
 
-DISCORD_API_KEY = os.environ['DISCORD_API_KEY']
-
-
-links: Dict[str, 'PlayerAccountLink']
 links = db
 bot = commands.Bot(command_prefix='!lb ')
 
@@ -25,9 +25,9 @@ class PlayerAccountLink:
 		self.discord_id = discord_id
 		self.last_game = None
 
-		self.custom_message: Dict[bool: List[str]]
+		self.custom_message: Dict[bool:List[str]]
 		self.custom_message = {True: [], False: []}
-		
+
 	def __repr__(self):
 		return \
 			f'name = {self.name}\n' \
@@ -37,21 +37,26 @@ class PlayerAccountLink:
 			f'custom messages = {self.custom_message}\n'
 
 	def __eq__(self, other):
-		return (
-				       other.league_puuid == self.league_puuid and other.discord_id == self.discord_id) or other.name == self.name
+		return (other.league_puuid == self.league_puuid and other.discord_id
+		        == self.discord_id) or other.name == self.name
 
 
 def get_link(key):
-	link = PlayerAccountLink('','','')
+	link = PlayerAccountLink('', '', '')
 	link.__dict__ = replit.database.to_primitive(links[key])
 	link.custom_message = replit.database.to_primitive(link.custom_message)
 	link.custom_message['true'] = replit.database.to_primitive(link.custom_message['true'])
 	link.custom_message['false'] = replit.database.to_primitive(link.custom_message['false'])
-	link.custom_message = {True: link.custom_message['true'], False: link.custom_message['false']}
+	link.custom_message = {
+		True: link.custom_message['true'],
+		False: link.custom_message['false']
+	}
 	return link
+
 
 def set_link(link):
 	links.set(link.name, link.__dict__)
+
 
 @bot.event
 async def on_ready():
@@ -67,7 +72,9 @@ async def on_command_error(ctx, error):
 		await ctx.send(f"No such command: {error}  (!lb help)")
 	elif isinstance(error, commands.MissingRequiredArgument):
 		await ctx.send(f"Missing an argument: {error}")
-		await ctx.send(f"```!lb {ctx.command} {ctx.command.signature}\n\n{ctx.command.help}```")
+		await ctx.send(
+			f"```!lb {ctx.command} {ctx.command.signature}\n\n{ctx.command.help}```"
+		)
 	else:
 		raise Exception
 
@@ -80,12 +87,17 @@ async def _list(ctx):
 	Example:
 		!lb list
 	"""
+	res = list_links()
+	await ctx.send(res)
+
+
+def list_links() -> str:
 	res = '```python\n[\n'
 	for key in links.keys():
 		link = get_link(key)
 		res += link.__repr__() + ',\n'
 	res += ']```'
-	await ctx.send(res)
+	return res
 
 
 @bot.command()
@@ -140,7 +152,9 @@ async def add(ctx, player_name, summoner_name, discord_id):
 		return
 
 	try:
-		new_link = PlayerAccountLink(player_name, await request_puuid_byname(summoner_name), discord_id)
+		new_link = PlayerAccountLink(player_name, await
+		request_puuid_byname(summoner_name),
+		                             discord_id)
 		if any(get_link(link) == new_link for link in links.keys()):
 			await ctx.send('Error: link or name already in list')
 			return
@@ -152,12 +166,12 @@ async def add(ctx, player_name, summoner_name, discord_id):
 		print(e, file=sys.stderr)
 		traceback.print_exc()
 		print(f'error add({player_name})')
-		await ctx.send('Error adding the link... Check names and ids or try again later')
+		await ctx.send(
+			'Error adding the link... Check names and ids or try again later')
 
 		m = type("", (), {})()
 		m.name = 'None'
 		raise commands.MissingRequiredArgument(m)
-
 
 
 @bot.command()
@@ -174,7 +188,8 @@ async def add_win_message(ctx, name, message):
 	"""
 	link = get_link(name)
 	if message in link.custom_message[True]:
-		await ctx.send(f'{name} can already receive this message when he wins.')
+		await ctx.send(f'{name} can already receive this message when he wins.'
+		               )
 		return
 	link.custom_message[True].append(message)
 	set_link(link)
@@ -195,7 +210,8 @@ async def add_lose_message(ctx, name, message):
 	"""
 	link = get_link(name)
 	if message in link.custom_message[False]:
-		await ctx.send(f'{name} can already receive this message when he loses.')
+		await ctx.send(
+			f'{name} can already receive this message when he loses.')
 		return
 	link.custom_message[False].append(message)
 	set_link(link)
@@ -227,7 +243,8 @@ async def loop():
 
 				try:
 					user = await bot.fetch_user(link.discord_id)
-					mess = get_message(is_win(game, link.league_puuid), link, game)
+					mess = get_message(is_win(game, link.league_puuid), link,
+					                   game)
 					await user.send(mess)
 				except Exception as e:
 					print(e, file=sys.stderr)
@@ -242,11 +259,5 @@ async def loop():
 
 
 if __name__ == '__main__':
-	print('[')
-	for key in links.keys():
-		print(get_link(key))
-	print(']')
+	print(list_links())
 	bot.run(DISCORD_API_KEY)
-
-# loop = asyncio.get_event_loop()
-# loop.run_until_complete(fun())
