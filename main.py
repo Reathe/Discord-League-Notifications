@@ -1,4 +1,5 @@
 import os
+import time
 
 os.system("pip install -r requirements.txt")
 DISCORD_API_KEY = os.environ['DISCORD_API_KEY']
@@ -231,20 +232,21 @@ async def loop():
 		link = get_link(key)
 		try:
 			# print(data)
-			gameId = (await player_matchlist(link.league_puuid))[0]
-
-			if gameId != link.last_game:
-				link.last_game = gameId
-				game = await get_game(gameId)
-
-				try:
-					user = await bot.fetch_user(link.discord_id)
-					mess = get_message(is_win(game, link.league_puuid), link, game)
-					await user.send(mess)
-				except Exception as e:
-					print(e, file=sys.stderr)
-					traceback.print_exc()
-					print("Impossible d'envoyer à " + str(link.name))
+			match_list = await player_matchlist(link.league_puuid, int(time.time()) - 60 * 5)
+			if len(match_list) > 0:
+				gameId = match_list[0]
+				if gameId != link.last_game:
+					game = await get_game(gameId)
+					try:
+						user = await bot.fetch_user(link.discord_id)
+						mess = get_message(is_win(game, link.league_puuid), link, game)
+						await user.send(mess)
+						link.last_game = gameId
+						set_link(link)
+					except Exception as e:
+						print(e, file=sys.stderr)
+						traceback.print_exc()
+						print("Impossible d'envoyer à " + str(link.name))
 
 		except Exception as e:
 			print(e, file=sys.stderr)
