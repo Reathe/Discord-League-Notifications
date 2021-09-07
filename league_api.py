@@ -1,10 +1,10 @@
+import os
 from typing import Any, Dict, List
 
 import requests
-from dotenv import dotenv_values
 
-config = dotenv_values(".env")
-RIOT_API_KEY = config['RIOT_API_KEY']
+
+RIOT_API_KEY = os.environ['RIOT_API_KEY']
 header = {"X-Riot-Token": RIOT_API_KEY}
 
 

@@ -1,16 +1,20 @@
+import os
 import asyncio
-import pickle
 import sys
 import traceback
 
+from typing import Dict, List
 from discord.ext import commands
+from replit import db
 
-from league_api import *
+from league_api import player_matchlist, get_game, is_win, request_puuid_byname
 from messages import get_message
 
-DISCORD_API_KEY = config['DISCORD_API_KEY']
+DISCORD_API_KEY = os.environ['DISCORD_API_KEY']
+
+
 links: Dict[str, 'PlayerAccountLink']
-links = {}
+links = db
 bot = commands.Bot(command_prefix='!lb ')
 
 
@@ -35,23 +39,6 @@ class PlayerAccountLink:
 	def __eq__(self, other):
 		return (
 				       other.league_puuid == self.league_puuid and other.discord_id == self.discord_id) or other.name == self.name
-
-
-async def dump_links():
-	global links
-	with open('player_list.pickle', 'wb+') as db:
-		pickle.dump(links, db, pickle.HIGHEST_PROTOCOL)
-
-
-async def load_links():
-	global links
-	with open('player_list.pickle', 'ab+') as f:
-		try:
-			links = pickle.load(f)
-		except EOFError:
-			traceback.print_exc()
-			pickle.dump({}, f)
-			links = {}
 
 
 @bot.event
@@ -81,7 +68,11 @@ async def _list(ctx):
 	Example:
 		!lb list
 	"""
-	await ctx.send(links.__repr__())
+	res = '```python\n['
+	for value in links.values():
+		res += value + ',\n'
+	res += ']```'
+	await ctx.send(res)
 
 
 @bot.command()
@@ -93,8 +84,8 @@ async def clear_list(ctx):
 		!lb clear_list
 	"""
 	global links
-	links = {}
-	await dump_links()
+	for key in links.keys():
+		del links[key]
 	await ctx.send('Cleared links')
 
 
@@ -142,6 +133,8 @@ async def add(ctx, player_name, summoner_name, discord_id):
 			return
 		new_link.last_game = (await player_matchlist(new_link.league_puuid))[0]
 		await bot.fetch_user(new_link.discord_id)
+		links[new_link.name] = new_link
+		await ctx.send(f'added new link: {new_link}')
 	except Exception:
 		"""print(e, file=sys.stderr)
 		traceback.print_exc()
@@ -152,9 +145,6 @@ async def add(ctx, player_name, summoner_name, discord_id):
 		m.name = 'None'
 		raise commands.MissingRequiredArgument(m)
 
-	links[new_link.name] = new_link
-	await dump_links()
-	await ctx.send(f'added new link: {new_link}')
 
 
 @bot.command()
@@ -196,46 +186,47 @@ async def add_lose_message(ctx, name, message):
 
 
 async def init_last_played_games():
-	for player in links.values():
+	for link in links.values():
 		try:
-			player.last_game = (await player_matchlist(player.league_puuid))[0]
+			link.last_game = (await player_matchlist(link.league_puuid))[0]
 		except Exception as e:
 			print(e, file=sys.stderr)
 			traceback.print_exc()
-			print('riot donne pas les stats (' + player.name + ')')
+			print('riot donne pas les stats (' + link.name + ')')
 
 
 async def loop():
 	global links
-	for player in links.values():
+	for link in links.values():
 		try:
 			# print(data)
-			gameId = (await player_matchlist(player.league_puuid))[0]
+			gameId = (await player_matchlist(link.league_puuid))[0]
 
-			if gameId != player.last_game:
-				player.last_game = gameId
+			if gameId != link.last_game:
+				link.last_game = gameId
 				game = await get_game(gameId)
 
 				try:
-					user = await bot.fetch_user(player.discord_id)
-					mess = get_message(is_win(game, player.league_puuid), player, game)
+					user = await bot.fetch_user(link.discord_id)
+					mess = get_message(is_win(game, link.league_puuid), link, game)
 					await user.send(mess)
 				except Exception as e:
 					print(e, file=sys.stderr)
 					traceback.print_exc()
-					print("Impossible d'envoyer à " + str(player.name))
+					print("Impossible d'envoyer à " + str(link.name))
 
 		except Exception as e:
 			print(e, file=sys.stderr)
 			traceback.print_exc()
-			print('Riot game donne pas les stats (' + player.name + ')')
+			print('Riot game donne pas les stats (' + link.name + ')')
 			continue
-	await dump_links()
 
 
 if __name__ == '__main__':
-	asyncio.run(load_links())
-	print(links)
+	print('[')
+	for value in links.values():
+		print(value, ',\n')
+	print(']')
 	bot.run(DISCORD_API_KEY)
 
 # loop = asyncio.get_event_loop()
