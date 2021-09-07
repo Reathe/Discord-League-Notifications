@@ -10,7 +10,7 @@ from messages import get_message
 
 DISCORD_API_KEY = config['DISCORD_API_KEY']
 links: Dict[str, 'PlayerAccountLink']
-links = {}
+links = None
 bot = commands.Bot(command_prefix='!lb ')
 
 
@@ -36,21 +36,21 @@ class PlayerAccountLink:
 		return (other.league_puuid == self.league_puuid and other.discord_id == self.discord_id) or other.name == self.name
 
 
-async def dump_links():
+def dump_links():
 	global links
 	with open('player_list.pickle', 'wb+') as db:
-		pickle.dump(links, db, pickle.HIGHEST_PROTOCOL)
+		pickle.dump(links, db)
 
 
-async def load_links():
+def load_links():
 	global links
-	with open('player_list.pickle', 'ab+') as f:
+	with open('player_list.pickle', 'rb+') as f:
 		try:
 			links = pickle.load(f)
 		except EOFError:
 			traceback.print_exc()
-			pickle.dump({}, f)
 			links = {}
+			dump_links()
 
 
 def list_links() -> str:
@@ -64,9 +64,10 @@ def list_links() -> str:
 
 @bot.event
 async def on_ready():
+	load_links()
 	await init_last_played_games()
 	while True:
-		await asyncio.sleep(60)
+		await asyncio.sleep(10)
 		await loop()
 
 
@@ -103,7 +104,7 @@ async def clear_list(ctx):
 	"""
 	global links
 	links = {}
-	await dump_links()
+	dump_links()
 	await ctx.send('Cleared links')
 
 
@@ -152,7 +153,7 @@ async def add(ctx, player_name, summoner_name, discord_id):
 		new_link.last_game = (await player_matchlist(new_link.league_puuid))[0]
 		await bot.fetch_user(new_link.discord_id)
 		links[new_link.name] = new_link
-		await dump_links()
+		dump_links()
 		await ctx.send(f'added new link: {new_link}')
 	except Exception:
 		"""print(e, file=sys.stderr)
@@ -181,7 +182,7 @@ async def add_win_message(ctx, name, message):
 		await ctx.send(f'{name} can already receive this message when he wins.')
 		return
 	links[name].custom_message[True].append(message)
-	await dump_links()
+	dump_links()
 	await ctx.send(f'{name} can now receive this message when he wins.')
 
 
@@ -201,7 +202,7 @@ async def add_lose_message(ctx, name, message):
 		await ctx.send(f'{name} can already receive this message when he loses.')
 		return
 	links[name].custom_message[False].append(message)
-	await dump_links()
+	dump_links()
 	await ctx.send(f'{name} can now receive this message when he loses.')
 
 
@@ -240,11 +241,11 @@ async def loop():
 			traceback.print_exc()
 			print('Riot game donne pas les stats (' + player.name + ')')
 			continue
-	await dump_links()
+	dump_links()
 
 
 if __name__ == '__main__':
-	asyncio.run(load_links())
+	load_links()
 	print(list_links())
 	bot.run(DISCORD_API_KEY)
 
