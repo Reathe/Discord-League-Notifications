@@ -6,7 +6,7 @@ import traceback
 from typing import Dict, List
 from discord.ext import commands
 from replit import db
-
+import replit
 from league_api import player_matchlist, get_game, is_win, request_puuid_byname
 from messages import get_message
 
@@ -68,9 +68,9 @@ async def _list(ctx):
 	Example:
 		!lb list
 	"""
-	res = '```python\n['
-	for value in links.values():
-		res += value + ',\n'
+	res = '```python\n[\n'
+	for key in links.keys():
+		res += links.get_raw(key) + ',\n'
 	res += ']```'
 	await ctx.send(res)
 
@@ -128,17 +128,17 @@ async def add(ctx, player_name, summoner_name, discord_id):
 
 	try:
 		new_link = PlayerAccountLink(player_name, await request_puuid_byname(summoner_name), discord_id)
-		if any(link == new_link for link in links.values()):
+		if any(links.get_raw(link) == new_link for link in links.keys()):
 			await ctx.send('Error: link or name already in list')
 			return
 		new_link.last_game = (await player_matchlist(new_link.league_puuid))[0]
 		await bot.fetch_user(new_link.discord_id)
-		links[new_link.name] = new_link
+		links.set_raw(new_link.name,new_link)
 		await ctx.send(f'added new link: {new_link}')
-	except Exception:
-		"""print(e, file=sys.stderr)
+	except Exception as e:
+		print(e, file=sys.stderr)
 		traceback.print_exc()
-		print(f'error add({player_name})')"""
+		print(f'error add({player_name})')
 		await ctx.send('Error adding the link... Check names and ids or try again later')
 
 		m = type("", (), {})()
@@ -186,7 +186,8 @@ async def add_lose_message(ctx, name, message):
 
 
 async def init_last_played_games():
-	for link in links.values():
+	for key in links.keys():
+		link = links.get_raw(key)
 		try:
 			link.last_game = (await player_matchlist(link.league_puuid))[0]
 		except Exception as e:
@@ -197,7 +198,8 @@ async def init_last_played_games():
 
 async def loop():
 	global links
-	for link in links.values():
+	for key in links.keys():
+		link = links.get_raw(key)
 		try:
 			# print(data)
 			gameId = (await player_matchlist(link.league_puuid))[0]
@@ -224,8 +226,8 @@ async def loop():
 
 if __name__ == '__main__':
 	print('[')
-	for value in links.values():
-		print(value, ',\n')
+	for key in links.keys():
+		print(links.get_raw(key), ',\n')
 	print(']')
 	bot.run(DISCORD_API_KEY)
 
