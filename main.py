@@ -58,6 +58,15 @@ def set_link(link):
 	links.set(link.name, link.__dict__)
 
 
+def list_links() -> str:
+	res = '```python\n[\n'
+	for key in links.keys():
+		link = get_link(key)
+		res += link.__repr__() + ',\n'
+	res += ']```'
+	return res
+
+
 @bot.event
 async def on_ready():
 	await init_last_played_games()
@@ -72,9 +81,7 @@ async def on_command_error(ctx, error):
 		await ctx.send(f"No such command: {error}  (!lb help)")
 	elif isinstance(error, commands.MissingRequiredArgument):
 		await ctx.send(f"Missing an argument: {error}")
-		await ctx.send(
-			f"```!lb {ctx.command} {ctx.command.signature}\n\n{ctx.command.help}```"
-		)
+		await ctx.send(f"```!lb {ctx.command} {ctx.command.signature}\n\n{ctx.command.help}```")
 	else:
 		raise Exception
 
@@ -91,13 +98,6 @@ async def _list(ctx):
 	await ctx.send(res)
 
 
-def list_links() -> str:
-	res = '```python\n[\n'
-	for key in links.keys():
-		link = get_link(key)
-		res += link.__repr__() + ',\n'
-	res += ']```'
-	return res
 
 
 @bot.command()
@@ -152,9 +152,7 @@ async def add(ctx, player_name, summoner_name, discord_id):
 		return
 
 	try:
-		new_link = PlayerAccountLink(player_name, await
-		request_puuid_byname(summoner_name),
-		                             discord_id)
+		new_link = PlayerAccountLink(player_name, await request_puuid_byname(summoner_name), discord_id)
 		if any(get_link(link) == new_link for link in links.keys()):
 			await ctx.send('Error: link or name already in list')
 			return
@@ -162,12 +160,11 @@ async def add(ctx, player_name, summoner_name, discord_id):
 		await bot.fetch_user(new_link.discord_id)
 		set_link(new_link)
 		await ctx.send(f'added new link: {get_link(new_link.name)}')
-	except Exception as e:
-		print(e, file=sys.stderr)
+	except Exception:
+		"""print(e, file=sys.stderr)
 		traceback.print_exc()
-		print(f'error add({player_name})')
-		await ctx.send(
-			'Error adding the link... Check names and ids or try again later')
+		print(f'error add({player_name})')"""
+		await ctx.send('Error adding the link... Check names and ids or try again later')
 
 		m = type("", (), {})()
 		m.name = 'None'
@@ -188,8 +185,7 @@ async def add_win_message(ctx, name, message):
 	"""
 	link = get_link(name)
 	if message in link.custom_message[True]:
-		await ctx.send(f'{name} can already receive this message when he wins.'
-		               )
+		await ctx.send(f'{name} can already receive this message when he wins.')
 		return
 	link.custom_message[True].append(message)
 	set_link(link)
@@ -243,8 +239,7 @@ async def loop():
 
 				try:
 					user = await bot.fetch_user(link.discord_id)
-					mess = get_message(is_win(game, link.league_puuid), link,
-					                   game)
+					mess = get_message(is_win(game, link.league_puuid), link, game)
 					await user.send(mess)
 				except Exception as e:
 					print(e, file=sys.stderr)
