@@ -2,6 +2,7 @@ import asyncio
 import pickle
 import sys
 import traceback
+from typing import Dict, List
 
 from discord.ext import commands
 
@@ -21,7 +22,7 @@ class PlayerAccountLink:
 		self.discord_id = discord_id
 		self.last_game = None
 
-		self.custom_message: Dict[bool: List[str]]
+		self.custom_message: Dict[bool, List[str]]
 		self.custom_message = {True: [], False: []}
 
 	def __repr__(self):
