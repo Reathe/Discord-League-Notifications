@@ -2,7 +2,6 @@ import asyncio
 import pickle
 import sys
 import traceback
-from typing import Dict, List
 
 from discord.ext import commands
 
@@ -34,8 +33,7 @@ class PlayerAccountLink:
 			f'custom messages = {self.custom_message}\n'
 
 	def __eq__(self, other):
-		return (
-				       other.league_puuid == self.league_puuid and other.discord_id == self.discord_id) or other.name == self.name
+		return (other.league_puuid == self.league_puuid and other.discord_id == self.discord_id) or other.name == self.name
 
 
 async def dump_links():
@@ -53,6 +51,15 @@ async def load_links():
 			traceback.print_exc()
 			pickle.dump({}, f)
 			links = {}
+
+
+def list_links() -> str:
+	res = '```python\n[\n'
+	for key in links.keys():
+		link = links[key]
+		res += link.__repr__() + ',\n'
+	res += ']```'
+	return res
 
 
 @bot.event
@@ -82,7 +89,8 @@ async def _list(ctx):
 	Example:
 		!lb list
 	"""
-	await ctx.send(links.__repr__())
+	res = list_links()
+	await ctx.send(res)
 
 
 @bot.command()
@@ -143,6 +151,9 @@ async def add(ctx, player_name, summoner_name, discord_id):
 			return
 		new_link.last_game = (await player_matchlist(new_link.league_puuid))[0]
 		await bot.fetch_user(new_link.discord_id)
+		links[new_link.name] = new_link
+		await dump_links()
+		await ctx.send(f'added new link: {new_link}')
 	except Exception:
 		"""print(e, file=sys.stderr)
 		traceback.print_exc()
@@ -152,10 +163,6 @@ async def add(ctx, player_name, summoner_name, discord_id):
 		m = type("", (), {})()
 		m.name = 'None'
 		raise commands.MissingRequiredArgument(m)
-
-	links[new_link.name] = new_link
-	await dump_links()
-	await ctx.send(f'added new link: {new_link}')
 
 
 @bot.command()
@@ -174,6 +181,7 @@ async def add_win_message(ctx, name, message):
 		await ctx.send(f'{name} can already receive this message when he wins.')
 		return
 	links[name].custom_message[True].append(message)
+	await dump_links()
 	await ctx.send(f'{name} can now receive this message when he wins.')
 
 
@@ -193,6 +201,7 @@ async def add_lose_message(ctx, name, message):
 		await ctx.send(f'{name} can already receive this message when he loses.')
 		return
 	links[name].custom_message[False].append(message)
+	await dump_links()
 	await ctx.send(f'{name} can now receive this message when he loses.')
 
 
@@ -236,7 +245,7 @@ async def loop():
 
 if __name__ == '__main__':
 	asyncio.run(load_links())
-	print(links)
+	print(list_links())
 	bot.run(DISCORD_API_KEY)
 
 # loop = asyncio.get_event_loop()
