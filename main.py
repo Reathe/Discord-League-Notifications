@@ -67,7 +67,7 @@ async def on_ready():
 	load_links()
 	await init_last_played_games()
 	while True:
-		await asyncio.sleep(10)
+		await asyncio.sleep(60)
 		await loop()
 
 
@@ -221,20 +221,21 @@ async def loop():
 	for player in links.values():
 		try:
 			# print(data)
-			gameId = (await player_matchlist(player.league_puuid))[0]
+			match_list = await player_matchlist(player.league_puuid, int(time.time())-60*5)
+			if len(match_list) > 0:
+				gameId = match_list[0]
+				if gameId != player.last_game:
+					player.last_game = gameId
+					game = await get_game(gameId)
 
-			if gameId != player.last_game:
-				player.last_game = gameId
-				game = await get_game(gameId)
-
-				try:
-					user = await bot.fetch_user(player.discord_id)
-					mess = get_message(is_win(game, player.league_puuid), player, game)
-					await user.send(mess)
-				except Exception as e:
-					print(e, file=sys.stderr)
-					traceback.print_exc()
-					print("Impossible d'envoyer à " + str(player.name))
+					try:
+						user = await bot.fetch_user(player.discord_id)
+						mess = get_message(is_win(game, player.league_puuid), player, game)
+						await user.send(mess)
+					except Exception as e:
+						print(e, file=sys.stderr)
+						traceback.print_exc()
+						print("Impossible d'envoyer à " + str(player.name))
 
 		except Exception as e:
 			print(e, file=sys.stderr)

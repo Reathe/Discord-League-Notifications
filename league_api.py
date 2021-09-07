@@ -1,3 +1,4 @@
+import time
 from typing import Any, Dict, List
 
 import requests
@@ -18,9 +19,11 @@ async def request(query: str, headers: Dict = None) -> Any:
 	return data
 
 
-async def player_matchlist(league_puuid: str) -> List:
-	res = await request('https://europe.api.riotgames.com/lol/match/v5/matches/by-puuid/' + league_puuid + '/ids')
-	if res is None or isinstance(res, dict):
+async def player_matchlist(league_puuid: str, timestamp=None, count=1) -> List:
+	res = await request('https://europe.api.riotgames.com/lol/match/v5/matches/by-puuid/' + league_puuid + '/ids' +
+	                    f'?count={count}' +
+	                    (f'&startTime={timestamp}' if timestamp else ''))
+	if not isinstance(res, list) or res is None or isinstance(res, dict):
 		raise Exception(f'Riot API Error (puuid Error?) {res}')
 	return res
 
