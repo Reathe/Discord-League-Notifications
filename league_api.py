@@ -18,23 +18,18 @@ async def request(query: str, headers: Dict = None) -> Any:
 
 
 async def player_matchlist(league_puuid: str) -> List:
-    res = await request(
-        'https://europe.api.riotgames.com/lol/match/v5/matches/by-puuid/' +
-        league_puuid + '/ids')
+    res = await request('https://europe.api.riotgames.com/lol/match/v5/matches/by-puuid/' + league_puuid + '/ids')
     if res is None or isinstance(res, dict):
         raise Exception(f'Riot API Error (puuid Error?) {res}')
     return res
 
 
 async def request_puuid_byname(player_name: str) -> str:
-    return (await request(
-        'https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/' +
-        player_name))['puuid']
+    return (await request('https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/' + player_name))['puuid']
 
 
 async def get_game(gameId):
-    game = await request(
-        'https://europe.api.riotgames.com/lol/match/v5/matches/' + str(gameId))
+    game = await request('https://europe.api.riotgames.com/lol/match/v5/matches/' + str(gameId))
     return game
 
 
