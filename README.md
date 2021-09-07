@@ -49,4 +49,3 @@ For this, you need to edit the `messages.py` file.
 The strings inside the `True` array are the ones sent on a win, and the `False` ones are sent on a lose. 
 
 You can get the player's name via `link.name`. You can also use game information in the strings with the `game` parameter, it is an object  received from this api call [/lol/match/v5/matches/{matchId}](https://developer.riotgames.com/apis#match-v5/GET_getMatch). 
-```

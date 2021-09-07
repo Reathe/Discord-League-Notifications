@@ -207,40 +207,39 @@ async def add_lose_message(ctx, name, message):
 
 
 async def init_last_played_games():
-	for player in links.values():
+	for link in links.values():
 		try:
-			player.last_game = (await player_matchlist(player.league_puuid))[0]
+			link.last_game = (await player_matchlist(link.league_puuid))[0]
 		except Exception as e:
 			print(e, file=sys.stderr)
 			traceback.print_exc()
-			print('riot donne pas les stats (' + player.name + ')')
+			print('riot donne pas les stats (' + link.name + ')')
 
 
 async def loop():
 	global links
-	for player in links.values():
+	for link in links.values():
 		try:
 			# print(data)
-			match_list = await player_matchlist(player.league_puuid, int(time.time())-60*5)
+			match_list = await player_matchlist(link.league_puuid, int(time.time())-60*5)
 			if len(match_list) > 0:
 				gameId = match_list[0]
-				if gameId != player.last_game:
-					player.last_game = gameId
+				if gameId != link.last_game:
 					game = await get_game(gameId)
-
 					try:
-						user = await bot.fetch_user(player.discord_id)
-						mess = get_message(is_win(game, player.league_puuid), player, game)
+						user = await bot.fetch_user(link.discord_id)
+						mess = get_message(is_win(game, link.league_puuid), link, game)
 						await user.send(mess)
+						link.last_game = gameId
 					except Exception as e:
 						print(e, file=sys.stderr)
 						traceback.print_exc()
-						print("Impossible d'envoyer à " + str(player.name))
+						print("Impossible d'envoyer à " + str(link.name))
 
 		except Exception as e:
 			print(e, file=sys.stderr)
 			traceback.print_exc()
-			print('Riot game donne pas les stats (' + player.name + ')')
+			print('Riot game donne pas les stats (' + link.name + ')')
 			continue
 	dump_links()
 
@@ -249,6 +248,3 @@ if __name__ == '__main__':
 	load_links()
 	print(list_links())
 	bot.run(DISCORD_API_KEY)
-
-# loop = asyncio.get_event_loop()
-# loop.run_until_complete(fun())
