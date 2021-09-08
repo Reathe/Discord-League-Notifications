@@ -9,6 +9,7 @@ import sys
 import traceback
 import replit
 
+from keep_alive import keep_alive
 from typing import Dict, List
 from discord.ext import commands
 from replit import db
@@ -257,4 +258,5 @@ async def loop():
 
 if __name__ == '__main__':
 	print(list_links())
+	keep_alive()
 	bot.run(DISCORD_API_KEY)
