@@ -9,6 +9,7 @@ import replit
 from discord.ext import commands
 from replit import db
 
+from keep_alive import keep_alive
 from league_api import player_matchlist, get_game, is_win, request_puuid_byname
 from messages import get_message
 
@@ -253,4 +254,5 @@ async def loop():
 
 if __name__ == '__main__':
 	print(list_links())
+	keep_alive()
 	bot.run(DISCORD_API_KEY)
