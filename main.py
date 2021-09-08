@@ -1,20 +1,18 @@
-import os
-import time
-
-os.system("pip install -r requirements.txt")
-DISCORD_API_KEY = os.environ['DISCORD_API_KEY']
-
 import asyncio
+import os
 import sys
+import time
 import traceback
-import replit
-
 from typing import Dict, List
+
+import replit
 from discord.ext import commands
 from replit import db
+
 from league_api import player_matchlist, get_game, is_win, request_puuid_byname
 from messages import get_message
 
+DISCORD_API_KEY = os.environ['DISCORD_API_KEY']
 links = db
 bot = commands.Bot(command_prefix='!lb ')
 
@@ -97,8 +95,6 @@ async def _list(ctx):
 	"""
 	res = list_links()
 	await ctx.send(res)
-
-
 
 
 @bot.command()
