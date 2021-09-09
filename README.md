@@ -1,8 +1,10 @@
 # Discord-League-Notifications
 Send a message to your friends when their league game ends.
 
+You have to host your bot yourself. You can also try the bot on replit with this [branch](https://github.com/Reathe/Discord-League-Notifications/tree/replit).
+
 ## Installation in your server
-You have to host your bot yourself. You can also try the bot on [replit](https://replit.com) with this [branch](https://github.com/Reathe/Discord-League-Notifications/tree/replit) made for replit. 
+To get the code: `git clone https://github.com/Reathe/Discord-League-Notifications`
 ### Discord bot creation
 First you need to create a bot and add it to your server, just follow the instructions [here](https://discordpy.readthedocs.io/en/stable/discord.html).
 
