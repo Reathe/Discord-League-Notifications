@@ -71,9 +71,11 @@ def list_links() -> str:
 async def on_ready():
 	await init_last_played_games()
 	while True:
-		await asyncio.sleep(60)
-		await loop()
-
+		try:
+			await asyncio.sleep(60)
+			await loop()
+		except Exception as e:
+			print(e)
 
 @bot.event
 async def on_command_error(ctx, error):
