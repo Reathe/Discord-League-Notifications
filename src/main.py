@@ -6,9 +6,9 @@ import traceback
 
 from discord.ext import commands
 
-from src.database import MyReplitDB
+from database.replit_database import MyReplitDB
 from keep_alive import keep_alive
-from src.api.league_api import get_game, is_win, player_matchlist, request_puuid_byname
+from api.league_api import get_game, is_win, player_matchlist, request_puuid_byname
 from messages import get_message
 from player_account_link import PlayerAccountLink
 

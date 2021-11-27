@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Text
 
-from src.player_account_link import PlayerAccountLink
+from player_account_link import PlayerAccountLink
 
 
 class MyDataBase(ABC):
