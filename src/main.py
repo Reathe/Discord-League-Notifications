@@ -3,65 +3,23 @@ import os
 import sys
 import time
 import traceback
-from typing import Dict, List
 
-import replit
 from discord.ext import commands
-from replit import db
 
+from src.database import MyReplitDB
 from keep_alive import keep_alive
-from league_api import player_matchlist, get_game, is_win, request_puuid_byname
+from src.api.league_api import get_game, is_win, player_matchlist, request_puuid_byname
 from messages import get_message
+from player_account_link import PlayerAccountLink
 
 DISCORD_API_KEY = os.environ['DISCORD_API_KEY']
-links = db
+links_db = MyReplitDB()
 bot = commands.Bot(command_prefix='!lb ')
-
-
-class PlayerAccountLink:
-	def __init__(self, name, league_puuid, discord_id):
-		self.name = name
-		self.league_puuid = league_puuid
-		self.discord_id = discord_id
-		self.last_game = None
-
-		self.custom_message: Dict[bool:List[str]]
-		self.custom_message = {True: [], False: []}
-
-	def __repr__(self):
-		return \
-			f'name = {self.name}\n' \
-			f'league_puuid = {self.league_puuid}\n' \
-			f'discord_id = {self.discord_id}\n' \
-			f'last_game = {self.last_game}\n' \
-			f'custom messages = {self.custom_message}\n'
-
-	def __eq__(self, other):
-		return (other.league_puuid == self.league_puuid and other.discord_id
-		        == self.discord_id) or other.name == self.name
-
-
-def get_link(key):
-	link = PlayerAccountLink('', '', '')
-	link.__dict__ = replit.database.to_primitive(links[key])
-	link.custom_message = replit.database.to_primitive(link.custom_message)
-	link.custom_message['true'] = replit.database.to_primitive(link.custom_message['true'])
-	link.custom_message['false'] = replit.database.to_primitive(link.custom_message['false'])
-	link.custom_message = {
-		True: link.custom_message['true'],
-		False: link.custom_message['false']
-	}
-	return link
-
-
-def set_link(link):
-	links.set(link.name, link.__dict__)
 
 
 def list_links() -> str:
 	res = '```python\n[\n'
-	for key in links.keys():
-		link = get_link(key)
+	for link in links_db:
 		res += link.__repr__() + ',\n'
 	res += ']```'
 	return res
@@ -76,6 +34,7 @@ async def on_ready():
 			await loop()
 		except Exception as e:
 			print(e)
+
 
 @bot.event
 async def on_command_error(ctx, error):
@@ -108,9 +67,10 @@ async def clear_list(ctx):
 	Example:
 		!lb clear_list
 	"""
-	global links
-	for key in links.keys():
-		del links[key]
+	global links_db
+	link: PlayerAccountLink
+	for link in links_db:
+		del links_db[link.name]
 	await ctx.send('Cleared links')
 
 
@@ -126,9 +86,9 @@ async def _del(ctx, name):
 			!lb del MyBro
 			!lb del "My Best Bro"
 	"""
-	global links
+	global links_db
 	try:
-		links.pop(name)
+		links_db.pop(name)
 		await ctx.send(f'Deleted {name}!')
 	except KeyError:
 		await ctx.send(f'{name} not in list')
@@ -147,19 +107,19 @@ async def add(ctx, player_name, summoner_name, discord_id):
 	Example:
 		!lb add MyBro "Bro Best Player" 121214596453912744
 	"""
-	if len(links) > 50:
+	if len(links_db) > 50:
 		await ctx.send('too many links, delete some')
 		return
 
 	try:
 		new_link = PlayerAccountLink(player_name, await request_puuid_byname(summoner_name), discord_id)
-		if any(get_link(link) == new_link for link in links.keys()):
+		if any(link == new_link for link in links_db):
 			await ctx.send('Error: link or name already in list')
 			return
 		new_link.last_game = (await player_matchlist(new_link.league_puuid))[0]
 		await bot.fetch_user(new_link.discord_id)
-		set_link(new_link)
-		await ctx.send(f'added new link: {get_link(new_link.name)}')
+		links_db.set(new_link.name, new_link)
+		await ctx.send(f'added new link: {links_db[new_link.name]}')
 	except Exception:
 		"""print(e, file=sys.stderr)
 		traceback.print_exc()
@@ -183,12 +143,12 @@ async def add_win_message(ctx, name, message):
 		!lb add_win_message "My GIGA Bro" "Hahah told you you'd win!"
 		!lb add_win_message MyBro "Lucky one..."
 	"""
-	link = get_link(name)
+	link = links_db.get(name)
 	if message in link.custom_message[True]:
 		await ctx.send(f'{name} can already receive this message when he wins.')
 		return
 	link.custom_message[True].append(message)
-	set_link(link)
+	links_db[link.name] = link
 	await ctx.send(f'{name} can now receive this message when he wins.')
 
 
@@ -204,19 +164,18 @@ async def add_lose_message(ctx, name, message):
 		!lb add_lose_message "My GIGA Bro" "Hahah told you you'd win... (everyone makes mistakes)"
 		!lb add_lose_message MyBro "Unlucky one..."
 	"""
-	link = get_link(name)
+	link = links_db[name]
 	if message in link.custom_message[False]:
 		await ctx.send(
 			f'{name} can already receive this message when he loses.')
 		return
 	link.custom_message[False].append(message)
-	set_link(link)
+	links_db[link.name] = link
 	await ctx.send(f'{name} can now receive this message when he loses.')
 
 
 async def init_last_played_games():
-	for key in links.keys():
-		link = get_link(key)
+	for link in links_db:
 		try:
 			link.last_game = (await player_matchlist(link.league_puuid))[0]
 		except Exception as e:
@@ -226,9 +185,9 @@ async def init_last_played_games():
 
 
 async def loop():
-	global links
-	for key in links.keys():
-		link = get_link(key)
+	global links_db
+	link: PlayerAccountLink
+	for link in links_db:
 		try:
 			# print(data)
 			match_list = await player_matchlist(link.league_puuid, int(time.time()) - 60 * 5)
@@ -241,7 +200,7 @@ async def loop():
 						mess = get_message(is_win(game, link.league_puuid), link, game)
 						await user.send(mess)
 						link.last_game = gameId
-						set_link(link)
+						links_db[link.name] = link
 					except Exception as e:
 						print(e, file=sys.stderr)
 						traceback.print_exc()
