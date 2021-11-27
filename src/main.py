@@ -18,6 +18,7 @@ bot = commands.Bot(command_prefix='!lb ')
 
 
 def list_links() -> str:
+	link: PlayerAccountLink
 	res = '```python\n[\n'
 	for link in links_db:
 		res += link.__repr__() + ',\n'
@@ -120,10 +121,10 @@ async def add(ctx, player_name, summoner_name, discord_id):
 		await bot.fetch_user(new_link.discord_id)
 		links_db.set(new_link.name, new_link)
 		await ctx.send(f'added new link: {links_db[new_link.name]}')
-	except Exception:
-		"""print(e, file=sys.stderr)
+	except Exception as e:
+		print(e, file=sys.stderr)
 		traceback.print_exc()
-		print(f'error add({player_name})')"""
+		print(f'error add({player_name})')
 		await ctx.send('Error adding the link... Check names and ids or try again later')
 
 		m = type("", (), {})()

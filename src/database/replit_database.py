@@ -8,7 +8,7 @@ class MyReplitDB(MyDataBase):
 		del replit.db[key]
 
 	def set(self, key, link: PlayerAccountLink):
-		replit.db.set(key, link)
+		replit.db.set(key, link.__dict__)
 
 	def get(self, key) -> PlayerAccountLink:
 		link = PlayerAccountLink('', '', '')
@@ -23,12 +23,8 @@ class MyReplitDB(MyDataBase):
 		return link
 
 	def __iter__(self):
-		return self
-
-	def __next__(self):
 		for key in replit.db.keys():
-			yield replit.db[key]
-		raise StopIteration
-
+			yield self[key]
+		
 	def __len__(self):
 		return len(replit.db)

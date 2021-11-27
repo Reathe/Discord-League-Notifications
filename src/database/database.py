@@ -39,9 +39,5 @@ class MyDataBase(ABC):
 		return self
 
 	@abstractmethod
-	def __next__(self):
-		pass
-
-	@abstractmethod
 	def __len__(self):
 		pass
