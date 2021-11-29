@@ -185,6 +185,19 @@ async def init_last_played_games():
             print('riot donne pas les stats (' + link.name + ')')
 
 
+@bot.command()
+async def msg(ctx, win):
+    """
+    PLS don't abuse this command PILIZ VRAIMENT sinon jl'enleve
+    Shows an example of a message you could get after a win/lose
+    Example:
+        !lb msg win
+        !lb msg lose
+    """
+    res = await get_message('win' == win.lower(), PlayerAccountLink('NulBot', None, None), None, best_of=1)
+    await ctx.send(res)
+
+
 async def loop():
     global links_db
     link: PlayerAccountLink
@@ -198,7 +211,7 @@ async def loop():
                     game = await get_game(gameId)
                     try:
                         user = await bot.fetch_user(link.discord_id)
-                        mess = get_message(is_win(game, link.league_puuid), link, game)
+                        mess = await get_message(is_win(game, link.league_puuid), link, game)
                         await user.send(mess)
                         link.last_game = gameId
                         links_db[link.name] = link

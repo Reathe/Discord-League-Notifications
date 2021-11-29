@@ -30,12 +30,12 @@ win_text = "# Les messages drôles après avoir gagné une partie de League of L
            "f\"Attention, on est dans un remake du film 'Aliens' et {player.name} est la bouffe du héros\",\n"
 
 
-def get_message(win, player: PlayerAccountLink, game):
+async def get_message(win, player: PlayerAccountLink, game, *args, **kwargs):
     nb_custom_message = len(player.custom_message[win])
     prob_custom = (1 - (1 / exp(nb_custom_message / 8))) / 1.75
 
     if random.random() > prob_custom:
-        response = request_completion(win_text if win else lose_text)
+        response = await request_completion(win_text if win else lose_text, *args, **kwargs)
         msg = response.choices[0].text[2:-2]
     else:
         msg = rand.choice(player.custom_message[win])
