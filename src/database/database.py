@@ -36,7 +36,7 @@ class MyDataBase(ABC):
 
     @abstractmethod
     def __iter__(self):
-        return self
+        pass
 
     @abstractmethod
     def __len__(self):

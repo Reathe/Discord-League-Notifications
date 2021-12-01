@@ -1,6 +1,3 @@
-from player_account_link import PlayerAccountLink
-from messages import get_message
-from api.league_api import get_game, is_win, player_matchlist, request_puuid_byname
 import asyncio
 import os
 import sys
@@ -10,11 +7,17 @@ import traceback
 from discord.ext import commands
 from dotenv import load_dotenv
 
-load_dotenv('../.env')
+from api.league_api import get_game, is_win, player_matchlist, request_puuid_byname
+from database.dataset_db import DataSetDB
+from messages import get_message
+from player_account_link import PlayerAccountLink
 
+load_dotenv()
 DISCORD_API_KEY = os.environ.get('DISCORD_API_KEY')
-links_db = MyReplitDB()
+
 bot = commands.Bot(command_prefix='!lb ')
+
+links_db = DataSetDB()
 
 
 def list_links() -> str:
