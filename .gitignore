@@ -2,3 +2,6 @@
 .idea
 __pycache__
 *.pickle
+.breakpoints
+poetry.lock
+pyproject.toml
