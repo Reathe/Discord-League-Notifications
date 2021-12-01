@@ -10,4 +10,4 @@ RUN pip3 install -r requirements.txt
 ENV PATH=/root/.local:$PATH
 
 COPY . .
-CMD ["python3", "main.py"]
+CMD ["python3", "src/main.py"]

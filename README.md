@@ -15,14 +15,16 @@ You need the API keys for Discord and Riot games for this bot to work.
 
 * For Riot games, follow the instructions [here](https://developer.riotgames.com/docs/portal#_getting-started). For this one, you can either use the development API key given once you log in or register your bot to get an API key for it. If you chose to use the development API key, it will expire every 24h and you will have to copy it again from the developer portal
 
-Once you have your API keys you need to create a file called `.env` inside this bot's directory. 
+Once you have your API keys you need to create a file called `.env` inside this bot's directory (you can just rename the `.env.example` file). 
 
 For example: `path/to/bot/Discord-League-Notifications/.env`
 
 Inside the `.env` file you need to add your api key like this:
 ```bash
-RIOT_API_KEY=RGAPI-6c498001-XXXX-XXXX-XXXX-3d7e0a483e04
-DISCORD_API_KEY=ODE2MDXxXXX0MTI3MjIzMzQy.YD01-Q.xXxXXXXXxXlkKrHWiKBpI7Wwky7
+DISCORD_API_KEY=your_api_key
+RIOT_API_KEY=your_api_key
+OPENAI_API_KEY=your_api_key
+DATABASE_URL='sqlite:///league_bot.db'
 ```
 
 ## Executing the bot
@@ -41,7 +43,7 @@ With [python3](https://www.python.org/downloads/) installed:
 cd path/to/bot/Discord-League-Notifications
 pip install --upgrade pip
 pip install -r requirements.txt
-python main.py
+python src/main.py
 ```
 That's it ! Your bot should be running !
 

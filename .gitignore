@@ -2,3 +2,9 @@
 .idea
 __pycache__
 *.pickle
+.breakpoints
+poetry.lock
+pyproject.toml
+league_bot.db
+league_bot.db-shm
+league_bot.db-wal
