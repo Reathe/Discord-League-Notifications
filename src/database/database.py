@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from functools import singledispatchmethod
 from typing import Text
 
 from player_account_link import PlayerAccountLink
@@ -40,4 +41,19 @@ class MyDataBase(ABC):
 
     @abstractmethod
     def __len__(self):
+        pass
+
+    @singledispatchmethod
+    @abstractmethod
+    def __contains__(self, item):
+        raise NotImplementedError("Cannot check if DB contains item")
+
+    @__contains__.register
+    @abstractmethod
+    def __contains__name(self, name: str):
+        pass
+
+    @__contains__.register
+    @abstractmethod
+    def __contains__link(self, link: PlayerAccountLink):
         pass

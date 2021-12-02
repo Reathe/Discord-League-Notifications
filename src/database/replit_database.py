@@ -1,6 +1,7 @@
 import replit
 from database.database import MyDataBase
 from player_account_link import PlayerAccountLink
+from functools import singledispatchmethod
 
 
 class MyReplitDB(MyDataBase):
@@ -28,3 +29,15 @@ class MyReplitDB(MyDataBase):
 
     def __len__(self):
         return len(replit.db)
+
+    @singledispatchmethod
+    def __contains__(self, item):
+        raise NotImplementedError("Cannot negate a")
+
+    @__contains__.register
+    def __contains__name(self, name: str):
+        return name in replit.db.keys()
+
+    @__contains__.register
+    def __contains__link(self, link: PlayerAccountLink):
+        return any(link == temp_link for temp_link in self)
