@@ -117,7 +117,7 @@ async def add(ctx, player_name, summoner_name, discord_id):
 
     try:
         new_link = PlayerAccountLink(player_name, await request_puuid_byname(summoner_name), discord_id)
-        if any(link == new_link for link in links_db):
+        if new_link in links_db:
             await ctx.send('Error: link or name already in list')
             return
         new_link.last_game = (await player_matchlist(new_link.league_puuid))[0]

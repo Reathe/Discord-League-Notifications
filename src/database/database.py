@@ -41,3 +41,7 @@ class MyDataBase(ABC):
     @abstractmethod
     def __len__(self):
         pass
+
+    @abstractmethod
+    def __contains__(self, key):
+        pass
