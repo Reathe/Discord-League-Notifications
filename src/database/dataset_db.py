@@ -1,8 +1,9 @@
+from functools import singledispatchmethod
 from typing import Text
 
 import dataset
 
-from database.database import MyDataBase
+from database import MyDataBase
 from player_account_link import PlayerAccountLink
 
 
@@ -42,5 +43,15 @@ class DataSetDB(MyDataBase):
     def __len__(self):
         return len(self.db['links'])
 
-    def __contains__(self, key):
-        return self.db['links'].find_one(name=key) is not None
+    @singledispatchmethod
+    def __contains__(self, item):
+        super().__contains__()
+
+    @__contains__.register
+    def _contains__name(self, name: str):
+        return self.db['links'].find_one(name=name) is not None
+
+    @__contains__.register
+    def _contains__link(self, link: PlayerAccountLink):
+        return (link.name in self) or \
+               (self.db['links'].find_one(discord_id=link.discord_id, league_puuid=link.league_puuid) is not None)
