@@ -12,7 +12,7 @@ from keep_alive import keep_alive
 from messages import get_message
 from player_account_link import PlayerAccountLink
 
-DISCORD_API_KEY = os.environ['DISCORD_API_KEY']
+DISCORD_API_KEY = os.environ.get('DISCORD_API_KEY')
 links_db = MyReplitDB()
 bot = commands.Bot(command_prefix='!lb ')
 
