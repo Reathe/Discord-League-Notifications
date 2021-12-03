@@ -194,7 +194,7 @@ async def msg(ctx, win):
         !lb msg win
         !lb msg lose
     """
-    res = await get_message('win' == win.lower(), PlayerAccountLink('NulBot', None, None), None, best_of=1)
+    res = await get_message('win' == win.lower(), PlayerAccountLink('NulBot', None, None), None, best_of=2)
     await ctx.send(res)
 
 

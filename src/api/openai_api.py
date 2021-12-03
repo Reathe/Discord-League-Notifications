@@ -13,11 +13,11 @@ async def request_completion(text, *args, **kwargs):
     """
     kwargs_ = {
         'engine': "davinci",
-        'temperature': 1,
+        'temperature': 0.9,
         'max_tokens': 100,
-        'top_p': 1,
-        'best_of': 10,
-        'frequency_penalty': 0.1,
+        'top_p': 0.6,
+        'best_of': 3,
+        'frequency_penalty': 0.05,
         'presence_penalty': 0,
         'stop': ["\n"],
         'logit_bias': {'60': -100}  # ']' character
