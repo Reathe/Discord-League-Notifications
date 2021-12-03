@@ -50,10 +50,10 @@ class MyDataBase(ABC):
 
     @__contains__.register
     @abstractmethod
-    def __contains__name(self, name: str):
+    def _contains__name(self, name: str):
         pass
 
     @__contains__.register
     @abstractmethod
-    def __contains__link(self, link: PlayerAccountLink):
+    def _contains__link(self, link: PlayerAccountLink):
         pass
