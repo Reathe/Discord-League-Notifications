@@ -12,11 +12,9 @@ lose_text = "# Les messages drôles après avoir perdu une partie de League of L
             "f\"Analyse du niveau de jeu de {player.name}... Claqué au sol\",\n" \
             "f\"Si tu AFK, ton équipe aura peut-être une chance la prochaine fois!\",\n" \
             "f\"rip les lp\",\n" \
-            "f\"Toujours les mates de merdes , jamais la faute de {player.name}\",\n" \
+            "f\"Toujours les mates de merdes, jamais la faute de {player.name}\",\n" \
             "f\"En vrai t'as le niveau challenger, c'est juste unlucky\",\n" \
-            "f\"La vie est injuste\",\n" \
-            "f\"Je vais devoir gérer les pleurs de {player.name} pendant 5 minutes\",\n" \
-            "f\"T'as vu {player.name}? Il a l'air de ne pas avoir sérieusement touché à une souris depuis 6 mois\",\n"
+            "f\"La vie est injuste\",\n"
 
 win_text = "# Les messages drôles après avoir gagné une partie de League of Legends:\n" \
            "messages = [\n" \
@@ -26,8 +24,7 @@ win_text = "# Les messages drôles après avoir gagné une partie de League of L
            "f\"Heureusement qu'ils jouent sans écran en face!\",\n" \
            "f\"Estimation du niveau réel des adversaires: ... Claqué au sol\",\n" \
            "f\"{player.name} a gagné ? Faudrait qu'ils augmentent le niveau des bots\",\n" \
-           "f\"Faut qu'on améliore le matchmaking... C'est pas normal que tu gagnes!\",\n" \
-           "f\"Attention, on est dans un remake du film 'Aliens' et {player.name} est la bouffe du héros\",\n"
+           "f\"Faut qu'on améliore le matchmaking... C'est pas normal que {player.name} gagne.\",\n"
 
 
 async def get_message(win, player: PlayerAccountLink, game, *args, **kwargs):
@@ -40,4 +37,7 @@ async def get_message(win, player: PlayerAccountLink, game, *args, **kwargs):
     else:
         msg = rand.choice(player.custom_message[win])
 
-    return msg.format(player=player, game=game)
+    try:
+        return msg.format(player=player, game=game)
+    except KeyError:
+        return msg.replace("{player.name}", player.name)
