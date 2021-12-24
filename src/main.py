@@ -4,6 +4,8 @@ import sys
 import time
 import traceback
 
+import discord
+import DiscordUtils
 from discord.ext import commands
 from dotenv import load_dotenv
 
@@ -54,13 +56,14 @@ async def on_command_error(ctx, error):
 @bot.command(name='list')
 async def _list(ctx):
     """
-    Shows the list of followed accounts
+    Shows the list of followed accounts (paginated)
 
     Example:
         !lb list
     """
-    res = list_links()
-    await ctx.send(res)
+    paginator = DiscordUtils.Pagination.AutoEmbedPaginator(ctx, remove_reactions=True, auto_footer=True)
+    embeds = [discord.Embed(color=ctx.author.color).add_field(name=links.name, value=str(links)) for links in links_db]
+    await paginator.run(embeds)
 
 
 @bot.command()
