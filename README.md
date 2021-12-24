@@ -24,7 +24,7 @@ Inside the `.env` file you need to add your api key like this:
 DISCORD_API_KEY=your_api_key
 RIOT_API_KEY=your_api_key
 OPENAI_API_KEY=your_api_key
-DATABASE_URL='sqlite:///league_bot.db'
+DATABASE_URL='sqlite:///../league_bot.db'
 ```
 
 ## Executing the bot

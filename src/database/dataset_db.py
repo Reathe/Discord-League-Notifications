@@ -1,23 +1,26 @@
+import os
 from functools import singledispatchmethod
 from typing import Text
 
 import dataset
+from dotenv import load_dotenv
 
 from database import MyDataBase
 from player_account_link import PlayerAccountLink
 
+load_dotenv()
+DATABASE_URL = os.environ.get('DATABASE_URL')
+
 
 class DataSetDB(MyDataBase):
     def __init__(self):
-        self.db: dataset.database.Database = dataset.connect()
+        self.db: dataset.database.Database = dataset.connect(DATABASE_URL)
 
     def remove(self, key: Text):
-        with self.db as db:
-            db['links'].delete(name=key)
+        self.db['links'].delete(name=key)
 
     def set(self, key: Text, link: PlayerAccountLink):
-        with self.db as tx:
-            tx['links'].upsert(link.__dict__, ['name'])
+        self.db['links'].upsert(link.__dict__, ['name'])
 
     def get(self, key: Text) -> PlayerAccountLink:
         player = self.__get(key)
@@ -31,8 +34,8 @@ class DataSetDB(MyDataBase):
         link = PlayerAccountLink('', '', '')
         link.__dict__ = value
         link.custom_message = {
-            True: link.custom_message['true'],
-            False: link.custom_message['false']
+                True:  link.custom_message['true'],
+                False: link.custom_message['false']
         }
         return link
 
