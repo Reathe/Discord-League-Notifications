@@ -39,7 +39,7 @@ async def get_message(win, player: PlayerAccountLink, game, *args, **kwargs):
         response = await request_completion(
             win_text if win else lose_text, *args, **kwargs
         )
-        msg = response.choices[0].text[2:-2]
+        msg = response["choices"][0]["text"][2:-2]
     else:
         msg = rand.choice(player.custom_message[win])
 
