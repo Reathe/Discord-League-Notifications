@@ -6,13 +6,12 @@ import traceback
 
 import discord
 import DiscordUtils
+from api.league_api import get_game, is_win, player_matchlist, request_puuid_byname
+from api.messages import get_message
+from database.dataset_db import DataSetDB
+from database.player_account_link import PlayerAccountLink
 from discord.ext import commands
 from dotenv import load_dotenv
-
-from .api.league_api import get_game, is_win, player_matchlist, request_puuid_byname
-from .database.dataset_db import DataSetDB
-from .messages import get_message
-from .player_account_link import PlayerAccountLink
 
 load_dotenv()
 DISCORD_API_KEY = os.environ.get("DISCORD_API_KEY")
@@ -138,14 +137,14 @@ async def add(ctx, player_name, summoner_name, discord_id):
         await bot.fetch_user(new_link.discord_id)
         links_db.set(new_link.name, new_link)
         await ctx.send(f"added new link: {links_db[new_link.name]}")
-    except Exception:
-        """print(e, file=sys.stderr)
-        traceback.print_exc()
-        print(f'error add({player_name})')"""
+    except Exception as e:
+        # print(e, file=sys.stderr)
+        # traceback.print_exc()
+        # print(f'error add({player_name})')
         await ctx.send(
             "Error adding the link... Check names and ids or try again later"
         )
-        raise commands.MissingRequiredArgument(None)
+        raise commands.MissingRequiredArgument(e)
 
 
 @bot.command()
@@ -203,14 +202,27 @@ async def init_last_played_games():
 @bot.command()
 async def msg(ctx, win):
     """
-    PLS don't abuse this command PILIZ VRAIMENT sinon jl'enleve
     Shows an example of a message you could get after a win/lose
     Example:
         !lb msg win
         !lb msg lose
     """
-    res = await get_message(
-        "win" == win.lower(), PlayerAccountLink("NulBot", None, None), None, best_of=2
+    res = get_message(
+        "win" == win.lower(), PlayerAccountLink("NulBot", None, None), None
+    )
+    await ctx.send(res)
+
+
+@bot.command()
+async def send(ctx, win, name):
+    """
+    Sends a message to user
+    Example:
+        !lb msg win user
+        !lb msg lose user
+    """
+    res = get_message(
+        "win" == win.lower(), PlayerAccountLink("NulBot", None, None), None
     )
     await ctx.send(res)
 
@@ -230,9 +242,7 @@ async def loop():
                     game = await get_game(gameId)
                     try:
                         user = await bot.fetch_user(link.discord_id)
-                        mess = await get_message(
-                            is_win(game, link.league_puuid), link, game
-                        )
+                        mess = get_message(is_win(game, link.league_puuid), link, game)
                         await user.send(mess)
                         link.last_game = gameId
                         links_db[link.name] = link

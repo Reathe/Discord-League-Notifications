@@ -9,12 +9,12 @@ RIOT_API_KEY = os.environ.get("RIOT_API_KEY")
 header = {"X-Riot-Token": RIOT_API_KEY}
 
 
-async def request(query: str, headers: Dict = None) -> Any:
+async def request(query: str, headers: Dict | None = None) -> Any:
     if headers is None:
         headers = header
-    r = requests.get(query, headers=headers)
+    r = requests.get(query, headers=headers, timeout=30)
     if r is None:
-        raise Exception("Riot API")
+        raise ConnectionError("Riot API")
     data = r.json()
     return data
 
@@ -28,7 +28,7 @@ async def player_matchlist(league_puuid: str, timestamp=None, count=1) -> List:
         + (f"&startTime={timestamp}" if timestamp else "")
     )
     if not isinstance(res, list) or res is None or isinstance(res, dict):
-        raise Exception(f"Riot API Error (puuid Error?) {res}")
+        raise ConnectionError(f"Riot API Error (puuid Error?) {res}")
     return res
 
 
@@ -52,3 +52,4 @@ def is_win(game, puuid) -> bool:
     for player in game["info"]["participants"]:
         if player["puuid"] == puuid:
             return bool(player["win"])
+    raise LookupError("Player is not in this game")

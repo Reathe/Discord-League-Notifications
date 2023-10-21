@@ -7,7 +7,7 @@ load_dotenv()
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 
 
-async def request_completion(text, *args, **kwargs):
+def request_completion(text, *args, **kwargs):
     """
     see https://beta.openai.com/docs/api-reference/ for arguments
     :param text: the text to autocomplete
@@ -24,7 +24,6 @@ async def request_completion(text, *args, **kwargs):
         "stop": ["\n"],
         "logit_bias": {"60": -100},  # ']' character
     }
-    for key in kwargs:
-        kwargs_[key] = kwargs[key]
-    kwargs = kwargs_
-    return openai.Completion.create(*args, prompt=text, **kwargs)
+    for key, item in kwargs.items():
+        kwargs_[key] = item
+    return openai.Completion.create(*args, prompt=text, **kwargs_)

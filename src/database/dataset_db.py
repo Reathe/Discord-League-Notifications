@@ -4,8 +4,8 @@ from functools import singledispatchmethod
 from dataset import connect
 from dotenv import load_dotenv
 
-from ..player_account_link import PlayerAccountLink
-from .database import MyDataBase
+from database.player_account_link import PlayerAccountLink
+from database.database import MyDataBase
 
 load_dotenv()
 DATABASE_URL = os.environ.get("DATABASE_URL")

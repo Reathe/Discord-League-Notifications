@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from functools import singledispatchmethod
 
-from ..player_account_link import PlayerAccountLink
+from database.player_account_link import PlayerAccountLink
 
 
 class MyDataBase(ABC):

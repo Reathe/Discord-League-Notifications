@@ -1,11 +1,13 @@
+import json
 import random
 from math import exp
 
-from .api.openai_api import request_completion
-from .player_account_link import PlayerAccountLink
+from database.player_account_link import PlayerAccountLink
+
+from api.completion_api import request_completion
 
 rand = random.Random()
-lose_text = (
+LOSE_TEXT = (
     "# Les messages drôles après avoir perdu une partie de League of Legends:\n"
     "messages = [\n"
     'f"haha alors ça lose bouffon?",\n'
@@ -18,7 +20,7 @@ lose_text = (
     'f"La vie est injuste",\n'
 )
 
-win_text = (
+WIN_TEXT = (
     "# Les messages drôles après avoir gagné une partie de League of Legends:\n"
     "messages = [\n"
     'f"Bouffon de {player.name}, tu t\'es fait carry.",\n'
@@ -31,14 +33,12 @@ win_text = (
 )
 
 
-async def get_message(win, player: PlayerAccountLink, game, *args, **kwargs):
+def get_message(win, player: PlayerAccountLink, game, *args, **kwargs):
     nb_custom_message = len(player.custom_message[win])
     prob_custom = (1 - (1 / exp(nb_custom_message / 8))) / 1.75
 
     if random.random() > prob_custom:
-        response = await request_completion(
-            win_text if win else lose_text, *args, **kwargs
-        )
+        response = request_completion(WIN_TEXT if win else LOSE_TEXT, *args, **kwargs)
         msg = response["choices"][0]["text"][2:-2]
     else:
         msg = rand.choice(player.custom_message[win])
