@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import os
 import sys
 import time
@@ -8,6 +9,7 @@ import discord
 import DiscordUtils
 from api.league_api import get_game, is_win, player_matchlist, request_puuid_byname
 from api.messages import get_message
+from database.databaseABC import MyDataBase
 from database.dataset_db import DataSetDB
 from database.player_account_link import PlayerAccountLink
 from discord.ext import commands
@@ -18,14 +20,14 @@ DISCORD_API_KEY = os.environ.get("DISCORD_API_KEY")
 
 bot = commands.Bot(command_prefix="!lb ")
 
-links_db = DataSetDB()
+links_db: MyDataBase = DataSetDB()
 
 
 def list_links() -> str:
     link: PlayerAccountLink
     res = "```python\n[\n"
     for link in links_db:
-        res += link.__repr__() + ",\n"
+        res += repr(link) + ",\n"
     res += "]```"
     return res
 
@@ -51,7 +53,7 @@ async def on_command_error(ctx, error):
             f"```!lb {ctx.command} {ctx.command.signature}\n\n{ctx.command.help}```"
         )
     else:
-        raise Exception
+        raise error
 
 
 @bot.command(name="list")
@@ -82,7 +84,6 @@ async def clear_list(ctx):
     Example:
         !lb clear_list
     """
-    global links_db
     link: PlayerAccountLink
     for link in links_db:
         del links_db[link.name]
@@ -101,7 +102,6 @@ async def _del(ctx, name):
         !lb del MyBro
         !lb del "My Best Bro"
     """
-    global links_db
     try:
         links_db.pop(name)
         await ctx.send(f"Deleted {name}!")
@@ -138,9 +138,7 @@ async def add(ctx, player_name, summoner_name, discord_id):
         links_db.set(new_link.name, new_link)
         await ctx.send(f"added new link: {links_db[new_link.name]}")
     except Exception as e:
-        # print(e, file=sys.stderr)
-        # traceback.print_exc()
-        # print(f'error add({player_name})')
+        logging.error("%s\n on add %s", e, player_name, stack_info=True)
         await ctx.send(
             "Error adding the link... Check names and ids or try again later"
         )
@@ -221,10 +219,10 @@ async def send(ctx, win, name):
         !lb msg win user
         !lb msg lose user
     """
-    res = get_message(
-        "win" == win.lower(), PlayerAccountLink("NulBot", None, None), None
-    )
-    await ctx.send(res)
+    link = links_db.get(name)
+    user = await bot.fetch_user(link.discord_id)
+    res = get_message("win" == win.lower(), link, None)
+    await user.send(res)
 
 
 async def loop():

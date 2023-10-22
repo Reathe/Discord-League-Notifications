@@ -1,11 +1,11 @@
 import os
 from functools import singledispatchmethod
 
-from dataset import connect
+from dataset import Database, connect
 from dotenv import load_dotenv
 
+from database.databaseABC import MyDataBase
 from database.player_account_link import PlayerAccountLink
-from database.database import MyDataBase
 
 load_dotenv()
 DATABASE_URL = os.environ.get("DATABASE_URL")
@@ -13,7 +13,7 @@ DATABASE_URL = os.environ.get("DATABASE_URL")
 
 class DataSetDB(MyDataBase):
     def __init__(self):
-        self.db = connect(DATABASE_URL)
+        self.db: Database = connect(DATABASE_URL)
 
     def remove(self, key: str):
         self.db["links"].delete(name=key)

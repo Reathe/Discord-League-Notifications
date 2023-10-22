@@ -22,4 +22,4 @@ def request_completion(text, *args, **kwargs):
         timeout=40,
         *args,
         **kwargs,
-    )
+    ).json()
