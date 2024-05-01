@@ -1,10 +1,9 @@
-import json
 import random
 from math import exp
 
 from database.player_account_link import PlayerAccountLink
 
-from api.completion_api import request_completion
+from api.groq_api import request_completion
 
 rand = random.Random()
 LOSE_TEXT = (
@@ -38,8 +37,7 @@ def get_message(win, player: PlayerAccountLink, game, *args, **kwargs):
     prob_custom = (1 - (1 / exp(nb_custom_message / 8))) / 1.75
 
     if random.random() > prob_custom:
-        response = request_completion(WIN_TEXT if win else LOSE_TEXT, *args, **kwargs)
-        msg = response["choices"][0]["text"][2:-2]
+        msg = request_completion(WIN_TEXT if win else LOSE_TEXT, *args, **kwargs)
     else:
         msg = rand.choice(player.custom_message[win])
 

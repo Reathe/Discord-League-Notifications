@@ -1,9 +1,8 @@
 import sys
 from os import path
 
-from database.player_account_link import PlayerAccountLink
-
 from database.dataset_db import DataSetDB
+from database.player_account_link import PlayerAccountLink
 
 sys.path.append(path.join(path.dirname(__file__), ".."))
 

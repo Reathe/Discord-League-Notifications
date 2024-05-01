@@ -7,3 +7,4 @@ __pycache__
 league_bot.db
 league_bot.db-shm
 league_bot.db-wal
+*launch.json
